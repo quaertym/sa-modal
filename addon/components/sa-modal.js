@@ -2,7 +2,7 @@
 
 import Ember from 'ember';
 
-var alias = Ember.computed.alias;
+const { alias } = Ember.computed;
 
 /**
  * If you do something to move focus outside of the browser (like
@@ -85,10 +85,10 @@ export default Ember.Component.extend({
    * @private
    */
 
-  'aria-hidden': function() {
+  'aria-hidden': Ember.computed('isOpen', function() {
     // coerce to string cause that's how the screenreaders like it
     return !this.get('isOpen')+'';
-  }.property('isOpen'),
+  }),
 
   /**
    * When the dialog opens the screenreader will get the label from the
@@ -108,9 +108,9 @@ export default Ember.Component.extend({
    * @private
    */
 
-  'is-open': function() {
+  'is-open': Ember.computed('isOpen', function() {
     return this.get('isOpen') ? 'true' : null;
-  }.property('isOpen'),
+  }),
 
   /**
    * Tells the screenreader to treat this element as a dialog.
@@ -236,10 +236,10 @@ export default Ember.Component.extend({
    * @private
    */
 
-  handleKeyDown: function(event) {
+  handleKeyDown: Ember.on('keyDown', function(event) {
     if (event.keyCode === 9 /*tab*/) { this.keepTabNavInside(event); }
     if (event.keyCode === 27 /*esc*/ && this.keyboardEscape) { this.close(); }
-  }.on('keyDown'),
+  }),
 
   /**
    * When the dialog is open, we want to keep all tab navigation scoped
@@ -274,14 +274,14 @@ export default Ember.Component.extend({
    * @private
    */
 
-  closeOnClick: function(event) {
+  closeOnClick: Ember.on('click', function(event) {
     if (event.target !== this.get('element')) { return; }
     if (this['on-cancel']) {
       this.sendAction('on-cancel');
     } else {
       this.close();
     }
-  }.on('click'),
+  }),
 
   /**
    * Often you need a mechanism besides an sa-modal-toggle to close an
@@ -321,11 +321,11 @@ export default Ember.Component.extend({
    * @private
    */
 
-  closeWhen: function() {
+  closeWhen: Ember.observer('close-when', function() {
     if (!this.get('close-when')) { return; }
     this.close();
     this.set('close-when', false);
-  }.observes('close-when'),
+  }),
 
   /**
    * Often you need a mechanism besides an sa-modal-toggle to open a dialog,
@@ -359,11 +359,11 @@ export default Ember.Component.extend({
    * @private
    */
 
-  openWhen: function() {
+  openWhen: Ember.observer('open-when', function() {
     if (!this.get('open-when')) { return; }
     this.open();
     this.set('open-when', false);
-  }.observes('open-when'),
+  }),
 
   /**
    * All Dialogs need a title for the screenreader (and the UI, usually
@@ -386,7 +386,9 @@ export default Ember.Component.extend({
    */
 
   registerTitle: function(component) {
-    this.set('titleComponent', component);
+    Ember.run.schedule('render', this, function() {
+      this.set('titleComponent', component);
+    });
   },
 
   /**
@@ -395,7 +397,9 @@ export default Ember.Component.extend({
    */
 
   registerTrigger: function(component) {
-    this.set('triggerComponent', component);
+    Ember.run.schedule('render', this, function() {
+      this.set('triggerComponent', component);
+    });
   }
 
 });
